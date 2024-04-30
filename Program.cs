@@ -2,6 +2,7 @@
 using otus_generics.Utils;
 using otus_generics.Extensions;
 using Microsoft.Extensions.Configuration;
+using otus_generics.Utils.EventArgs;
 
 namespace otus_generics;
 
@@ -123,14 +124,16 @@ internal class Program
             Console.WriteLine($"Scan completed. Handled: {args.Handled}");      
         };
 
-        scanner.FileFound += (sender, args) =>
-        {
-            Console.WriteLine($"Found file {args.FileName}");
-            string answer = Ask(" Do you want to interrupt scan (Yes(y), Default(n)):");
-            args.ForceStop = answer.Equals("Y", StringComparison.InvariantCultureIgnoreCase);
-        };
+        scanner.FileFound += FileFoundHandler;
 
         Console.WriteLine($"Scanning: {folderPath}");
         scanner.ScanFolder(folderPath);
+    }
+
+    public void FileFoundHandler(object? sender, FileFoundEventArgs args, out bool forceStop)
+    {
+        Console.WriteLine($"Found file {args.FileName}");
+        string answer = Ask(" Do you want to interrupt scan (Yes(y), Default(n)):");
+        forceStop = answer.Equals("Y", StringComparison.InvariantCultureIgnoreCase);
     }
 }

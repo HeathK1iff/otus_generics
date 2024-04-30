@@ -2,6 +2,9 @@
 
 namespace otus_generics.Utils;
 
+
+public delegate void EventHandlerInterrupted<TEventArgs>(object? sender, TEventArgs e, out bool forceStop);
+
 public class FileScanner
 {
     public string[] ScanFolder(string folder)
@@ -19,15 +22,14 @@ public class FileScanner
                 var eventArgs = new FileFoundEventArgs()
                 {
                     FileName = Path.GetFileName(fileName),
-                    FilePath = Path.GetDirectoryName(fileName),
-                    ForceStop = false
+                    FilePath = Path.GetDirectoryName(fileName)
                 };
 
                 result.Add(fileName);
 
-                OnFileFound(eventArgs);
+                OnFileFound(eventArgs, out bool forceStop);
 
-                if (eventArgs.ForceStop)
+                if (forceStop)
                 {
                     break;
                 }
@@ -48,13 +50,14 @@ public class FileScanner
     {
         ScanCompleted?.Invoke(this, args);
     }
-
-    protected virtual void OnFileFound(FileFoundEventArgs args)
+    
+    protected virtual void OnFileFound(FileFoundEventArgs args, out bool forceStop)
     {
-        FileFound?.Invoke(this, args);
+        forceStop = false;
+        FileFound?.Invoke(this, args, out forceStop);
     }
 
     public event EventHandler<ScanCompletedEventArgs> ScanCompleted;
 
-    public event EventHandler<FileFoundEventArgs> FileFound;
+    public event EventHandlerInterrupted<FileFoundEventArgs> FileFound;
 }
